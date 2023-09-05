@@ -186,11 +186,9 @@ def nans(shape: Union[int, Tuple[int, ...]], dtype=np.float64) -> np.ndarray:
     >>> nans(2, np.datetime64)
     array(['NaT', 'NaT'], dtype=datetime64)
     """
-    if np.issubdtype(dtype, np.integer):
-        dtype = np.float
-    arr = np.empty(shape, dtype=dtype)
-    arr.fill(np.nan)
-    return arr
+    if dtype==int:
+        dtype=float
+    return np.full(shape, fill_value=np.nan, dtype=dtype)
 
 
 def drop_na(array: np.ndarray) -> np.ndarray:
@@ -292,7 +290,7 @@ def prepend_na(array: np.ndarray, n: int) -> np.ndarray:
         return np.hstack((nans(n), array))
 
     elem = array[0]
-    dtype = np.float64
+    dtype = float
     if hasattr(elem, 'dtype'):
         dtype = elem.dtype
 
@@ -494,7 +492,7 @@ def expanding(
 
         yield from (array[:i] for i in np.arange(min_periods, array.size + 1))
 
-    return np.array([row for row in rows_gen()]) if as_array else rows_gen()
+    return np.array([row for row in rows_gen()], dtype=object) if as_array else rows_gen()
 
 
 def expanding_apply(
@@ -553,7 +551,7 @@ def expanding_apply(
         raise ValueError('Arrays must be the same length')
 
     def _apply_func_to_arrays(idxs):
-        return func(*[array[idxs.astype(np.int)] for array in arrays], **kwargs)
+        return func(*[array[idxs.astype(int)] for array in arrays], **kwargs)
 
     array = arrays[0]
     rolls = expanding(
